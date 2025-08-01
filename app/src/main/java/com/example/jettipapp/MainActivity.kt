@@ -56,6 +56,8 @@ fun MyJetTipApp(innerPadding: PaddingValues = PaddingValues(0.0.dp)) {
             TotalAmountPerPersonToPayWidget(amountToPay = amountToPay)
             Spacer(modifier = Modifier.height(12.dp))
             BillInfoWidget(
+                taxPercent = taxPercent,
+                numberOfPeople = numberOfPeople,
                 onTaxPercentChanged = {
                     taxPercent = it
                     amountToPay = calculateAmount(billValue, taxPercent, numberOfPeople)
@@ -104,6 +106,8 @@ fun TotalAmountPerPersonToPayWidget(amountToPay: Float = 0.0f) {
 
 @Composable
 fun BillInfoWidget(
+    taxPercent: Int,
+    numberOfPeople: Int,
     onBillValueChanged: (String) -> Unit = {},
     onNumberOfPeopleChanged: (Int) -> Unit = {},
     onTaxPercentChanged: (Int) -> Unit = {},
@@ -142,23 +146,24 @@ fun BillInfoWidget(
 
             Spacer(modifier = Modifier.height(16.dp))
             NumberOfPeopleToSplitOnWidget(
-                onAddButtonClickedCallback = onNumberOfPeopleChanged,
-                onRemoveButtonClickedCallback = onNumberOfPeopleChanged,
+                numberOfPeople = numberOfPeople,
+                onNumberOfPeopleChanged = onNumberOfPeopleChanged
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-            TaxPercentWidget(onPercentChanged = onTaxPercentChanged)
+            TaxPercentWidget(
+                percent = taxPercent,
+                onPercentChanged = onTaxPercentChanged
+            )
         }
     }
 }
 
 @Composable
 fun NumberOfPeopleToSplitOnWidget(
-    onAddButtonClickedCallback: (Int) -> Unit,
-    onRemoveButtonClickedCallback: (Int) -> Unit,
+    numberOfPeople: Int,
+    onNumberOfPeopleChanged: (Int) -> Unit,
 ) {
-    var numberOfPeople by remember { mutableIntStateOf(1) }
-
     Column {
         Text("Split Between", fontWeight = FontWeight.Medium)
         Spacer(modifier = Modifier.height(6.dp))
@@ -168,8 +173,7 @@ fun NumberOfPeopleToSplitOnWidget(
         ) {
             CustomRoundedIconButton(Icons.Default.Remove, "Remove", {
                 if (numberOfPeople > 1) {
-                    numberOfPeople--
-                    onRemoveButtonClickedCallback(numberOfPeople)
+                    onNumberOfPeopleChanged(numberOfPeople - 1)
                 }
             }, enabled = numberOfPeople > 1)
 
@@ -180,17 +184,17 @@ fun NumberOfPeopleToSplitOnWidget(
             )
 
             CustomRoundedIconButton(Icons.Default.Add, "Add", {
-                numberOfPeople++
-                onAddButtonClickedCallback(numberOfPeople)
+                onNumberOfPeopleChanged(numberOfPeople + 1)
             })
         }
     }
 }
 
 @Composable
-fun TaxPercentWidget(initialPercent: Int = 15, onPercentChanged: (Int) -> Unit = {}) {
-    var percent by remember { mutableIntStateOf(initialPercent) }
-
+fun TaxPercentWidget(
+    percent: Int,
+    onPercentChanged: (Int) -> Unit = {}
+) {
     Column {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -203,8 +207,7 @@ fun TaxPercentWidget(initialPercent: Int = 15, onPercentChanged: (Int) -> Unit =
         Slider(
             value = percent.toFloat(),
             onValueChange = {
-                percent = it.toInt()
-                onPercentChanged(percent)
+                onPercentChanged(it.toInt())
             },
             valueRange = 0f..100f,
             modifier = Modifier.fillMaxWidth()
